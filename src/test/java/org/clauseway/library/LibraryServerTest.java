@@ -8,7 +8,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.clauseway.functional.Nothing;
 import org.clauseway.pldb.inmemory.SharedDatabase;
-import org.clauseway.pldb.transaction.AbstractTransaction;
 import org.clauseway.pldb.transaction.Footprint;
 import org.clauseway.pldb.transaction.Pinned;
 import org.clauseway.pldb.transaction.Transaction;
@@ -25,7 +24,7 @@ public class LibraryServerTest {
 	/** Two titles, three members; Sally holds loan 500 on copy 1. */
 	private static SharedDatabase stockedWorld() {
 		SharedDatabase world = SharedDatabase.empty();
-		assertThat(Library.over(AbstractTransaction.over(world.open("seed")))
+		assertThat(Library.over(Transaction.over(world.open("seed")))
 				.withTier("standard", 3, 14)
 				.withBook("978-0", "SICP", "Abelson")
 				.withCopy(1, "978-0")

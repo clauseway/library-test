@@ -5,7 +5,7 @@ package org.clauseway.library;
 
 import org.clauseway.functional.Nothing;
 import org.clauseway.pldb.inmemory.SharedDatabase;
-import org.clauseway.pldb.transaction.AbstractTransaction;
+import org.clauseway.pldb.transaction.Transaction;
 import org.clauseway.pldb.transaction.Footprint;
 import org.clauseway.pldb.transaction.Pinned;
 import org.clauseway.pldb.transaction.Simulated;
@@ -63,7 +63,7 @@ public final class LibraryServer {
 	}
 
 	private <T> Pinned<T> reading(String endpoint, Function<Library, T> query) {
-		Simulated read = AbstractTransaction.over(world.open(request(endpoint)));
+		Simulated read = Transaction.over(world.open(request(endpoint)));
 		try (Library library = Library.over(read)) {
 			return Pinned.of(query.apply(library), read.footprint());
 		} catch (Exception e) {
@@ -74,7 +74,7 @@ public final class LibraryServer {
 	private Try<Nothing> posting(String endpoint, Footprint premise,
 			Function<Library, Try<Library>> command) {
 		try {
-			Simulated write = AbstractTransaction.over(world.open(request(endpoint))).requiring(premise);
+			Simulated write = Transaction.over(world.open(request(endpoint))).requiring(premise);
 			try (Library library = Library.over(write)) {
 				return command.apply(library).flatMap(Library::commit);
 			}

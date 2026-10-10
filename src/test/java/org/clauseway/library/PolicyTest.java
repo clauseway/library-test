@@ -12,7 +12,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.clauseway.logic.unification.terms.Reified;
 import org.clauseway.logic.unification.terms.Unifiable;
 import org.clauseway.pldb.inmemory.SharedDatabase;
-import org.clauseway.pldb.transaction.AbstractTransaction;
 import org.clauseway.pldb.transaction.Transaction;
 import java.time.LocalDate;
 import java.util.List;
@@ -37,7 +36,7 @@ public class PolicyTest {
 	public void theCheckoutDayFallsOutOfTheDueDate() {
 		// day + loanDays = dueDay is a relation, not a projection: given the
 		// due day, the checkout day falls out backwards through the same rule
-		Transaction t0 = AbstractTransaction.over(SharedDatabase.empty().open("policy-backwards"));
+		Transaction t0 = Transaction.over(SharedDatabase.empty().open("policy-backwards"));
 		Transaction t1 = t0.asserting(Schema.tier(t0, lval("standard"), lval(3), lval(14L)));
 		Transaction t2 = t1.asserting(Schema.member(t1, lval(100), lval("Ada"), lval("standard")));
 		Rules rules = new Rules(t2);

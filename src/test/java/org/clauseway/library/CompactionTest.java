@@ -12,7 +12,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.clauseway.logic.unification.terms.Unifiable;
 import org.clauseway.pldb.inmemory.SharedDatabase;
-import org.clauseway.pldb.transaction.AbstractTransaction;
 import org.clauseway.pldb.transaction.Transaction;
 import org.clauseway.vavr.control.Try;
 import java.util.Collections;
@@ -22,7 +21,7 @@ import org.junit.Test;
 public class CompactionTest {
 
 	private static Library open(SharedDatabase store, String id) {
-		return Library.over(AbstractTransaction.over(store.open(id)));
+		return Library.over(Transaction.over(store.open(id)));
 	}
 
 	/** Loan 500 lent and RETURNED (closed), loan 501 still active. */
@@ -46,7 +45,7 @@ public class CompactionTest {
 	}
 
 	private static long loanEvents(SharedDatabase store) throws Exception {
-		try (Transaction reader = AbstractTransaction.over(store.open("count-loans"))) {
+		try (Transaction reader = Transaction.over(store.open("count-loans"))) {
 			Unifiable<Integer> id = lvar();
 			return Query.of(Schema.loan(reader, id, lvar(), lvar(), lvar())).solve(id).count();
 		}
@@ -104,7 +103,7 @@ public class CompactionTest {
 	@Test
 	public void aPinnedReaderStraddlingTheShedBounces() throws Exception {
 		SharedDatabase store = storeWithOneClosedLoan();
-		Transaction reader = AbstractTransaction.over(store.open("reader"));
+		Transaction reader = Transaction.over(store.open("reader"));
 		Unifiable<Integer> id = lvar();
 		assertThat(Query.of(Schema.loan(reader, id, lvar(), lvar(), lvar())).solve(id).count())
 				.isEqualTo(2);

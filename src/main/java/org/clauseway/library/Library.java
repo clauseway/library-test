@@ -20,7 +20,6 @@ import org.clauseway.logic.unification.terms.Reified;
 import org.clauseway.logic.unification.terms.Unifiable;
 import org.clauseway.pldb.inmemory.SharedDatabase;
 import org.clauseway.pldb.relations.Literal;
-import org.clauseway.pldb.transaction.AbstractTransaction;
 import org.clauseway.pldb.transaction.Transaction;
 import org.clauseway.vavr.control.Try;
 import java.time.LocalDate;
@@ -41,7 +40,7 @@ public final class Library implements AutoCloseable {
 
 	/** A private one-history world — the pure-value mode for tests and demos. */
 	public static Library empty() {
-		return over(AbstractTransaction.over(SharedDatabase.empty().open("library")));
+		return over(Transaction.over(SharedDatabase.empty().open("library")));
 	}
 
 	public static Library over(Transaction transaction) {

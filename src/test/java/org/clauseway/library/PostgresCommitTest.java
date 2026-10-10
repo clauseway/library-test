@@ -10,7 +10,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.clauseway.pldb.sql.SqlFetch;
 import org.clauseway.pldb.sql.SerializableSource;
 import org.clauseway.pldb.sql.Watermark;
-import org.clauseway.pldb.transaction.AbstractTransaction;
 import org.clauseway.pldb.transaction.Transaction;
 import org.clauseway.vavr.control.Try;
 import java.sql.Connection;
@@ -110,7 +109,7 @@ public class PostgresCommitTest {
 
 	private static Library nativeLibrary(String id) {
 		try {
-			return Library.over(AbstractTransaction.over(withDates(
+			return Library.over(Transaction.over(withDates(
 					SerializableSource.postgres(id, connect()))));
 		} catch (SQLException e) {
 			throw new IllegalStateException(e);
@@ -119,7 +118,7 @@ public class PostgresCommitTest {
 
 	private static Library simulatedLibrary(String id) {
 		try {
-			return Library.over(AbstractTransaction.over(
+			return Library.over(Transaction.over(
 					Watermark.over(withDates(SqlFetch.pinned(id, connect())),
 							PostgresCommitTest::commitConnection)));
 		} catch (SQLException e) {

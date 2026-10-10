@@ -7,7 +7,6 @@ import static org.clauseway.library.Days.day;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.clauseway.pldb.inmemory.SharedDatabase;
-import org.clauseway.pldb.transaction.AbstractTransaction;
 import org.clauseway.pldb.transaction.Transaction;
 import org.clauseway.vavr.control.Try;
 import org.junit.Test;
@@ -15,7 +14,7 @@ import org.junit.Test;
 public class CommitTest {
 
 	private static Library open(SharedDatabase store, String id) {
-		return Library.over(AbstractTransaction.over(store.open(id)));
+		return Library.over(Transaction.over(store.open(id)));
 	}
 
 	private static SharedDatabase stockedStore() {

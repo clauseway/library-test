@@ -15,7 +15,6 @@ import org.clauseway.logic.solving.Query;
 import org.clauseway.logic.unification.terms.Term;
 import org.clauseway.logic.unification.terms.Unifiable;
 import org.clauseway.pldb.inmemory.SharedDatabase;
-import org.clauseway.pldb.transaction.AbstractTransaction;
 import org.clauseway.pldb.transaction.Transaction;
 import org.junit.Test;
 
@@ -23,7 +22,7 @@ public class TarPitPostTest {
 
 	/** The post's world: two copies, member 100 holding copy 1 on loan 10. */
 	private static Transaction world() {
-		Transaction t = AbstractTransaction.over(SharedDatabase.empty().open("tar-pit-post"));
+		Transaction t = Transaction.over(SharedDatabase.empty().open("tar-pit-post"));
 		t = t.asserting(Schema.copy(t, lval(1), lval("978-0132350884")));
 		t = t.asserting(Schema.copy(t, lval(2), lval("978-0201633610")));
 		t = t.asserting(Schema.loan(t, lval(10), lval(1), lval(100),
