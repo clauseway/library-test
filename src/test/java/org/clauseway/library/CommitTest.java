@@ -14,7 +14,7 @@ import org.junit.Test;
 public class CommitTest {
 
 	private static Library open(SharedDatabase store, String id) {
-		return Library.over(Transaction.over(store.open(id)));
+		return Library.over(Transaction.recording(store.open(id)));
 	}
 
 	private static SharedDatabase stockedStore() {

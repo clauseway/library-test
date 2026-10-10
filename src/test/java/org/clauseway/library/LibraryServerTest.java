@@ -24,7 +24,7 @@ public class LibraryServerTest {
 	/** Two titles, three members; Sally holds loan 500 on copy 1. */
 	private static SharedDatabase stockedWorld() {
 		SharedDatabase world = SharedDatabase.empty();
-		assertThat(Library.over(Transaction.over(world.open("seed")))
+		assertThat(Library.over(Transaction.recording(world.open("seed")))
 				.withTier("standard", 3, 14)
 				.withBook("978-0", "SICP", "Abelson")
 				.withCopy(1, "978-0")

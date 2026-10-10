@@ -12,7 +12,7 @@ import org.clauseway.pldb.inmemory.SharedDatabase;
 import org.clauseway.logic.solving.Answer;
 import org.clauseway.pldb.relations.Relation;
 import org.clauseway.pldb.relations.Question;
-import org.clauseway.pldb.transaction.Simulated;
+import org.clauseway.pldb.transaction.RecordingTransaction;
 import org.clauseway.pldb.transaction.Transaction;
 import org.clauseway.vavr.control.Try;
 import java.time.LocalDate;
@@ -35,7 +35,7 @@ import lombok.NoArgsConstructor;
 public final class Maintenance {
 
 	public static Try<Nothing> compactClosedLoans(SharedDatabase world) throws Exception {
-		try (Simulated tx = Transaction.over(world.open("compact-closed-loans"))) {
+		try (RecordingTransaction tx = Transaction.recording(world.open("compact-closed-loans"))) {
 			Rules rules = new Rules(tx);
 			Unifiable<Integer> id = lvar();
 			Unifiable<Integer> copy = lvar();

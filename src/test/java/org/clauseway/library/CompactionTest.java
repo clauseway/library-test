@@ -21,7 +21,7 @@ import org.junit.Test;
 public class CompactionTest {
 
 	private static Library open(SharedDatabase store, String id) {
-		return Library.over(Transaction.over(store.open(id)));
+		return Library.over(Transaction.recording(store.open(id)));
 	}
 
 	/** Loan 500 lent and RETURNED (closed), loan 501 still active. */
@@ -45,7 +45,7 @@ public class CompactionTest {
 	}
 
 	private static long loanEvents(SharedDatabase store) throws Exception {
-		try (Transaction reader = Transaction.over(store.open("count-loans"))) {
+		try (Transaction reader = Transaction.recording(store.open("count-loans"))) {
 			Unifiable<Integer> id = lvar();
 			return Query.of(Schema.loan(reader, id, lvar(), lvar(), lvar())).solve(id).count();
 		}
@@ -103,7 +103,7 @@ public class CompactionTest {
 	@Test
 	public void aPinnedReaderStraddlingTheShedBounces() throws Exception {
 		SharedDatabase store = storeWithOneClosedLoan();
-		Transaction reader = Transaction.over(store.open("reader"));
+		Transaction reader = Transaction.recording(store.open("reader"));
 		Unifiable<Integer> id = lvar();
 		assertThat(Query.of(Schema.loan(reader, id, lvar(), lvar(), lvar())).solve(id).count())
 				.isEqualTo(2);

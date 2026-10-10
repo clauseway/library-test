@@ -8,7 +8,7 @@ import org.clauseway.pldb.inmemory.SharedDatabase;
 import org.clauseway.pldb.transaction.Transaction;
 import org.clauseway.pldb.transaction.Footprint;
 import org.clauseway.pldb.transaction.Pinned;
-import org.clauseway.pldb.transaction.Simulated;
+import org.clauseway.pldb.transaction.RecordingTransaction;
 import org.clauseway.vavr.control.Try;
 import java.time.LocalDate;
 import java.util.List;
@@ -18,10 +18,10 @@ import java.util.function.Function;
 /**
  * The library's wire shape, function-level: the server owns the world and
  * the engine, clients never solve. A GET opens a snapshot, answers the
- * business read, and attaches the {@link Simulated#footprint()} of that
+ * business read, and attaches the {@link RecordingTransaction#footprint()} of that
  * read — the client's proof material. A POST runs the command's OWN
  * validation solve in a fresh transaction and commits it
- * {@link Simulated#requiring(Footprint) requiring} the client's premise:
+ * {@link RecordingTransaction#requiring(Footprint) requiring} the client's premise:
  * the pins of whatever earlier reads the client's decision stood on.
  * Refusal is the two guards, distinctly: a denial names the violated
  * rule (the server's validation), a {@code Conflict} means a premised
@@ -63,7 +63,7 @@ public final class LibraryServer {
 	}
 
 	private <T> Pinned<T> reading(String endpoint, Function<Library, T> query) {
-		Simulated read = Transaction.over(world.open(request(endpoint)));
+		RecordingTransaction read = Transaction.recording(world.open(request(endpoint)));
 		try (Library library = Library.over(read)) {
 			return Pinned.of(query.apply(library), read.footprint());
 		} catch (Exception e) {
@@ -74,7 +74,7 @@ public final class LibraryServer {
 	private Try<Nothing> posting(String endpoint, Footprint premise,
 			Function<Library, Try<Library>> command) {
 		try {
-			Simulated write = Transaction.over(world.open(request(endpoint))).requiring(premise);
+			RecordingTransaction write = Transaction.recording(world.open(request(endpoint))).requiring(premise);
 			try (Library library = Library.over(write)) {
 				return command.apply(library).flatMap(Library::commit);
 			}

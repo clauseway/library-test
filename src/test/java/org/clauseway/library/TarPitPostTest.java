@@ -22,7 +22,7 @@ public class TarPitPostTest {
 
 	/** The post's world: two copies, member 100 holding copy 1 on loan 10. */
 	private static Transaction world() {
-		Transaction t = Transaction.over(SharedDatabase.empty().open("tar-pit-post"));
+		Transaction t = Transaction.recording(SharedDatabase.empty().open("tar-pit-post"));
 		t = t.asserting(Schema.copy(t, lval(1), lval("978-0132350884")));
 		t = t.asserting(Schema.copy(t, lval(2), lval("978-0201633610")));
 		t = t.asserting(Schema.loan(t, lval(10), lval(1), lval(100),

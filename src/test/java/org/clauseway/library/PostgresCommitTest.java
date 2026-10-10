@@ -118,7 +118,7 @@ public class PostgresCommitTest {
 
 	private static Library simulatedLibrary(String id) {
 		try {
-			return Library.over(Transaction.over(
+			return Library.over(Transaction.recording(
 					Watermark.over(withDates(SqlFetch.pinned(id, connect())),
 							PostgresCommitTest::commitConnection)));
 		} catch (SQLException e) {

@@ -40,7 +40,7 @@ public final class Library implements AutoCloseable {
 
 	/** A private one-history world — the pure-value mode for tests and demos. */
 	public static Library empty() {
-		return over(Transaction.over(SharedDatabase.empty().open("library")));
+		return over(Transaction.recording(SharedDatabase.empty().open("library")));
 	}
 
 	public static Library over(Transaction transaction) {
