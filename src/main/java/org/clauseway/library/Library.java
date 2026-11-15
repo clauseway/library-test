@@ -19,7 +19,7 @@ import org.clauseway.functional.Nothing;
 import org.clauseway.logic.unification.terms.Reified;
 import org.clauseway.logic.unification.terms.Unifiable;
 import org.clauseway.pldb.inmemory.SharedDatabase;
-import org.clauseway.pldb.relations.Literal;
+import org.clauseway.pldb.relations.literals.External;
 import org.clauseway.pldb.transaction.Transaction;
 import org.clauseway.vavr.control.Try;
 import java.time.LocalDate;
@@ -83,7 +83,7 @@ public final class Library implements AutoCloseable {
 		return with(Schema.tier(db, lval(name), lval(loanLimit), lval((long) loanDays)));
 	}
 
-	private Library with(Literal row) {
+	private Library with(External<?> row) {
 		return new Library(db.asserting(row));
 	}
 

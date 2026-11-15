@@ -15,7 +15,7 @@ import static org.clauseway.library.Schema.tier;
 import static org.clauseway.logic.goals.Goal.defer;
 import static org.clauseway.logic.nogoods.Exclusion.exclude;
 import static org.clauseway.logic.unification.terms.LVar.lvar;
-import static org.clauseway.pldb.relations.Projected.projected;
+import static org.clauseway.pldb.relations.Ignored.ignored;
 
 import org.clauseway.logic.aggregate.Aggregate;
 import org.clauseway.logic.finitedomain.Dates;
@@ -23,7 +23,7 @@ import org.clauseway.logic.finitedomain.Ints;
 import org.clauseway.logic.unification.terms.Unifiable;
 import org.clauseway.pldb.AnswerSource;
 import java.time.LocalDate;
-import org.clauseway.pldb.relations.Literal;
+import org.clauseway.pldb.relations.literals.Literal;
 
 final class Rules {
 
@@ -34,7 +34,7 @@ final class Rules {
 	}
 
 	/** loan without a return event. */
-	Literal activeLoan(Unifiable<Integer> loanId, Unifiable<Integer> copyId,
+	Literal<?> activeLoan(Unifiable<Integer> loanId, Unifiable<Integer> copyId,
 			Unifiable<Integer> memberId, Unifiable<LocalDate> dueDay) {
 		return Literal.relation(Rules.class, "activeLoan")
 				.arg("loanId", loanId)
@@ -46,7 +46,7 @@ final class Rules {
 	}
 
 	/** loan WITH its return event — the spent cluster compaction may shed. */
-	Literal closedLoan(Unifiable<Integer> loanId, Unifiable<Integer> copyId,
+	Literal<?> closedLoan(Unifiable<Integer> loanId, Unifiable<Integer> copyId,
 			Unifiable<Integer> memberId, Unifiable<LocalDate> dueDay) {
 		return Literal.relation(Rules.class, "closedLoan")
 				.arg("loanId", loanId)
@@ -58,16 +58,16 @@ final class Rules {
 	}
 
 	/** copy not on loan: ¬∃ of activeLoan onto the copy, stated inline. */
-	Literal availableCopy(Unifiable<Integer> copyId, Unifiable<String> isbn) {
+	Literal<?> availableCopy(Unifiable<Integer> copyId, Unifiable<String> isbn) {
 		return Literal.relation(Rules.class, "availableCopy")
 				.arg("copyId", copyId)
 				.arg("isbn", isbn)
 				.solving(copy(db, copyId, isbn)
-						.and(exclude(activeLoan(projected(), copyId, projected(), projected()))));
+						.and(exclude(activeLoan(ignored(), copyId, ignored(), ignored()))));
 	}
 
 	/** active loan whose due day lies strictly before the given day. */
-	Literal overdue(Unifiable<Integer> loanId, Unifiable<LocalDate> today) {
+	Literal<?> overdue(Unifiable<Integer> loanId, Unifiable<LocalDate> today) {
 		Unifiable<LocalDate> d = lvar();
 		return Literal.relation(Rules.class, "overdue")
 				.arg("loanId", loanId)
@@ -76,7 +76,7 @@ final class Rules {
 	}
 
 	/** The member's lending policy, read through their tier. */
-	Literal loanPolicy(Unifiable<Integer> memberId, Unifiable<Integer> loanLimit,
+	Literal<?> loanPolicy(Unifiable<Integer> memberId, Unifiable<Integer> loanLimit,
 			Unifiable<Long> loanDays) {
 		Unifiable<String> t = lvar();
 		return Literal.relation(Rules.class, "loanPolicy")
@@ -92,7 +92,7 @@ final class Rules {
 	 * a relation over the triple, so any position falls out of the other
 	 * two: the due day from the checkout, or the checkout from the due day.
 	 */
-	Literal dueDate(Unifiable<Integer> memberId, Unifiable<LocalDate> day,
+	Literal<?> dueDate(Unifiable<Integer> memberId, Unifiable<LocalDate> day,
 			Unifiable<LocalDate> dueDay) {
 		Unifiable<Long> len = lvar();
 		return Literal.relation(Rules.class, "dueDate")
@@ -104,7 +104,7 @@ final class Rules {
 	}
 
 	/** reservation without a cancellation or fulfillment event. */
-	Literal liveReservation(Unifiable<Integer> resId, Unifiable<String> isbn,
+	Literal<?> liveReservation(Unifiable<Integer> resId, Unifiable<String> isbn,
 			Unifiable<Integer> memberId, Unifiable<LocalDate> day) {
 		return Literal.relation(Rules.class, "liveReservation")
 				.arg("resId", resId)
@@ -121,7 +121,7 @@ final class Rules {
 	 * in order, so min id is FIFO. Mode-restricted: the aggregate inside
 	 * needs the isbn ground at the probe.
 	 */
-	Literal queueHead(Unifiable<String> isbn, Unifiable<Integer> memberId) {
+	Literal<?> queueHead(Unifiable<String> isbn, Unifiable<Integer> memberId) {
 		return Literal.relation(Rules.class, "queueHead")
 				.arg("isbn", isbn)
 				.arg("memberId", memberId)
@@ -138,18 +138,18 @@ final class Rules {
 	 * the ABSENCE of denials — there is no positive twin to drift from.
 	 * Mode-restricted: the loan-limit count needs member and copy ground.
 	 */
-	Literal checkOutDenial(Unifiable<Integer> memberId, Unifiable<Integer> copyId,
+	Literal<?> checkOutDenial(Unifiable<Integer> memberId, Unifiable<Integer> copyId,
 			Unifiable<String> reason) {
 		return Literal.relation(Rules.class, "checkOutDenial")
 				.arg("memberId", memberId)
 				.arg("copyId", copyId)
 				.arg("reason", reason)
-				.solving(exclude(member(db, memberId, projected(), projected()))
+				.solving(exclude(member(db, memberId, ignored(), ignored()))
 						.and(reason.unifies("not a member"))
-						.or(exclude(copy(db, copyId, projected()))
+						.or(exclude(copy(db, copyId, ignored()))
 								.and(reason.unifies("no such copy")))
-						.or(member(db, memberId, projected(), projected())
-								.and(exclude(loanPolicy(memberId, projected(), projected())))
+						.or(member(db, memberId, lvar(), lvar())
+								.and(exclude(loanPolicy(memberId, ignored(), ignored())))
 								.and(reason.unifies("no loan policy")))
 						.or(defer(() -> {
 							Unifiable<String> i = lvar();
@@ -177,15 +177,15 @@ final class Rules {
 	}
 
 	/** The reserve policy's complement, same shape as checkOutDenial. */
-	Literal reserveDenial(Unifiable<Integer> memberId, Unifiable<String> isbn,
+	Literal<?> reserveDenial(Unifiable<Integer> memberId, Unifiable<String> isbn,
 			Unifiable<String> reason) {
 		return Literal.relation(Rules.class, "reserveDenial")
 				.arg("memberId", memberId)
 				.arg("isbn", isbn)
 				.arg("reason", reason)
-				.solving(exclude(member(db, memberId, projected(), projected()))
+				.solving(exclude(member(db, memberId, ignored(), ignored()))
 						.and(reason.unifies("not a member"))
-						.or(exclude(book(db, isbn, projected(), projected()))
+						.or(exclude(book(db, isbn, ignored(), ignored()))
 								.and(reason.unifies("no such title")))
 						.or(liveReservation(lvar(), isbn, memberId, lvar())
 								.and(reason.unifies("already holds a reservation"))));

@@ -9,14 +9,11 @@ import org.clauseway.functional.Nothing;
 import org.clauseway.functional.fibers.schedulers.BreadthFirstScheduler;
 import org.clauseway.logic.unification.terms.Unifiable;
 import org.clauseway.pldb.inmemory.SharedDatabase;
-import org.clauseway.logic.solving.Answer;
-import org.clauseway.pldb.relations.Relation;
-import org.clauseway.pldb.relations.Question;
+import org.clauseway.logic.solving.Query;
 import org.clauseway.pldb.transaction.RecordingTransaction;
 import org.clauseway.pldb.transaction.Transaction;
 import org.clauseway.vavr.control.Try;
 import java.time.LocalDate;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -41,11 +38,10 @@ public final class Maintenance {
 			Unifiable<Integer> copy = lvar();
 			Unifiable<Integer> member = lvar();
 			Unifiable<LocalDate> due = lvar();
-			List<Answer<Relation>> clusters = new BreadthFirstScheduler<>(Question.select(
-					rules.closedLoan(id, copy, member, due),
-					Schema.loan(null, id, copy, member, due),
-					Schema.returned(null, id))).get();
-			Transaction staged = tx.retracting(clusters);
+			Query closed = Query.of(rules.closedLoan(id, copy, member, due)).on(BreadthFirstScheduler::new);
+			Transaction staged = tx
+					.retracting(closed.select(Schema.loan(null, id, copy, member, due).facts()))
+					.retracting(closed.select(Schema.returned(null, id).facts()));
 			return Try.of(() -> {
 				staged.commit();
 				return Nothing.nothing();
